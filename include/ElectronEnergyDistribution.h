@@ -13,7 +13,7 @@ constexpr double kNumElectrons = 1.99e30; // number of electrons, picked up from
 
 class EeDistributionCreator{
    public:
-      EeDistributionCreator(TString fluxFilePath,double input_POT_FHC_ME, double input_POT_RHC_ME, double input_POT_FHC_LE, double input_POT_RHC_LE, std::vector<double> EeBinEdges, TString f1_FilePath_numu, TString f10_FilePath_numu, TString f1_FilePath_numubar, TString f10_FilePath_numubar, TString f1_FilePath_nue, TString f10_FilePath_nue, TString f1_FilePath_nuebar, TString f10_FilePath_nuebar);      
+      EeDistributionCreator(TString fluxFilePath,double input_POT_FHC_ME, double input_POT_RHC_ME, double input_POT_FHC_LE, double input_POT_RHC_LE, std::vector<double> EeBinEdges, TString f1_FilePath_numu, TString f10_FilePath_numu, TString f1_FilePath_numubar, TString f10_FilePath_numubar, TString f1_FilePath_nue, TString f10_FilePath_nue, TString f1_FilePath_nuebar, TString f10_FilePath_nuebar, int numUnivs);      
 
       ~EeDistributionCreator(); // destructor
 
@@ -36,7 +36,9 @@ class EeDistributionCreator{
       // write the rad correction for fixed neutrino energy to file
       void WriteRadCorrToFileForFixedEnu(TString path, TString output_name, double Enu);
 
-      void PopulateEeDistributions();
+      PlotUtils::MnvH1D* PopulateEeDistributions(MatrixK* kXSecMatrix, PlotUtils::MnvH1D* kFluxDistr, PlotUtils::MnvH1D* kEeDistr, double POT);
+      void PopulateEeDistributions(int pdg);
+  
       PlotUtils::MnvH1D* GetTotalEeDistribution();
 
    private:
@@ -76,6 +78,8 @@ class EeDistributionCreator{
 
       std::vector<double> kEeBinEdges;
       std::vector<double> kEeBinEdges_UFOF;
+
+      int kNumUnivs; 
 
       RadCorrTomalak* kRadCorr_PDG14;
       RadCorrTomalak* kRadCorr_PDGminus14;

@@ -6,33 +6,51 @@ ROOT.gStyle.SetOptStat(0)
 ROOT.gROOT.SetBatch(True)
 ROOT.gStyle.SetTextFont(42)
 
+pdg = int(sys.argv[1])
+
 LO = ROOT.TFile.Open("/exp/minerva/app/users/mmehmood/MAT_AL9/ComputeFluxConstraint/LeadingOrder_noRadCorr.root", "READ")
 
-NLO = ROOT.TFile.Open("/exp/minerva/app/users/mmehmood/MAT_AL9/ComputeFluxConstraint/star.root", "READ")
+NLO = ROOT.TFile.Open("/exp/minerva/app/users/mmehmood/MAT_AL9/ComputeFluxConstraint/RadCorrApplied.root", "READ")
 
 FIG8 = ROOT.TFile.Open("/exp/minerva/app/users/mmehmood/MAT_AL9/ComputeFluxConstraint/FIG8_EmailNumbers.root", "READ")
 
 FIG8_Updated = ROOT.TFile.Open("/exp/minerva/app/users/mmehmood/MAT_AL9/ComputeFluxConstraint/FIG8_UpdatedEmailNumbers.root", "READ")
 
-#histo_LO = LO.Get("kXSecMatrix_UFOF_XsecProj_PDG14")
-#histo_NLO = NLO.Get("kXSecMatrix_UFOF_XsecProj_PDG14")
-#histo_FIG8 = FIG8.Get("numu")
-#histo_FIG8_Updated = FIG8_Updated.Get("numu")
+if pdg == 14:
+   #histo_LO = LO.Get("kXSecMatrix_UFOF_XsecProj_PDG14")
+   #histo_NLO = NLO.Get("kXSecMatrix_UFOF_XsecProj_PDG14")
+   histo_LO = LO.Get("kXSecMatrix_XsecProj_PDG14")
+   histo_NLO = NLO.Get("kXSecMatrix_XsecProj_PDG14")
+   histo_FIG8 = FIG8.Get("numu")
+   histo_FIG8_Updated = FIG8_Updated.Get("numu")
+   title = "numu"
 
-#histo_LO = LO.Get("kXSecMatrix_UFOF_XsecProj_PDGminus14")
-#histo_NLO = NLO.Get("kXSecMatrix_UFOF_XsecProj_PDGminus14")
-#histo_FIG8 = FIG8.Get("numubar")
-#histo_FIG8_Updated = FIG8_Updated.Get("numubar")
+elif pdg == -14:
+   #histo_LO = LO.Get("kXSecMatrix_UFOF_XsecProj_PDGminus14")
+   #histo_NLO = NLO.Get("kXSecMatrix_UFOF_XsecProj_PDGminus14")
+   histo_LO = LO.Get("kXSecMatrix_XsecProj_PDGminus14")
+   histo_NLO = NLO.Get("kXSecMatrix_XsecProj_PDGminus14")
+   histo_FIG8 = FIG8.Get("numubar")
+   histo_FIG8_Updated = FIG8_Updated.Get("numubar")
+   title = "numubar"
 
-#histo_LO = LO.Get("kXSecMatrix_UFOF_XsecProj_PDG12")
-#histo_NLO = NLO.Get("kXSecMatrix_UFOF_XsecProj_PDG12")
-#histo_FIG8 = FIG8.Get("nue")
-#histo_FIG8_Updated = FIG8_Updated.Get("nue")
+elif pdg == 12:
+   #histo_LO = LO.Get("kXSecMatrix_UFOF_XsecProj_PDG12")
+   #histo_NLO = NLO.Get("kXSecMatrix_UFOF_XsecProj_PDG12")
+   histo_LO = LO.Get("kXSecMatrix_XsecProj_PDG12")
+   histo_NLO = NLO.Get("kXSecMatrix_XsecProj_PDG12")
+   histo_FIG8 = FIG8.Get("nue")
+   histo_FIG8_Updated = FIG8_Updated.Get("nue")
+   title = "nue"
 
-histo_LO = LO.Get("kXSecMatrix_UFOF_XsecProj_PDGminus12")
-histo_NLO = NLO.Get("kXSecMatrix_UFOF_XsecProj_PDGminus12")
-histo_FIG8 = FIG8.Get("nuebar")
-histo_FIG8_Updated = FIG8_Updated.Get("nuebar")
+elif pdg == -12:
+   #histo_LO = LO.Get("kXSecMatrix_UFOF_XsecProj_PDGminus12")
+   #histo_NLO = NLO.Get("kXSecMatrix_UFOF_XsecProj_PDGminus12")
+   histo_LO = LO.Get("kXSecMatrix_XsecProj_PDGminus12")
+   histo_NLO = NLO.Get("kXSecMatrix_XsecProj_PDGminus12")
+   histo_FIG8 = FIG8.Get("nuebar")
+   histo_FIG8_Updated = FIG8_Updated.Get("nuebar")
+   title = "nuebar"
 
 
 c = ROOT.TCanvas("c", "c", 800, 600)
@@ -44,10 +62,15 @@ histo_NLO.Scale(1e42) # the FIG8 doesn't have the scaling on it, so on the axis 
 histo_LO.GetXaxis().SetTitle("Neutrino Energy [GeV]")
 histo_LO.GetYaxis().SetTitle("Total Cross-Section 10^{42}, cm^{2}/GeV")
 histo_LO.GetXaxis().SetRangeUser(0,7)
-#histo_LO.GetYaxis().SetRangeUser(1.55, 1.65) #numu
-#histo_LO.GetYaxis().SetRangeUser(1.3, 1.4) #numubar
-#histo_LO.GetYaxis().SetRangeUser(9, 9.7) #nue
-histo_LO.GetYaxis().SetRangeUser(3.8, 3.98) #nuebar
+
+if pdg == 14:
+   histo_LO.GetYaxis().SetRangeUser(1.55, 1.65) #numu
+elif pdg == -14:
+   histo_LO.GetYaxis().SetRangeUser(1.3, 1.4) #numubar
+elif pdg == 12:
+   histo_LO.GetYaxis().SetRangeUser(9, 9.7) #nue
+elif pdg == -12:
+   histo_LO.GetYaxis().SetRangeUser(3.8, 3.98) #nuebar
 
 histo_LO.SetLineWidth(2)
 histo_LO.SetLineColor(ROOT.kBlack)
@@ -77,8 +100,5 @@ leg.Draw("SAME")
 print(histo_FIG8.GetN())
 print(histo_FIG8_Updated.GetN())
 
-#c.SaveAs("numu.png")
-#c.SaveAs("numubar.png")
-#c.SaveAs("nue.png")
-c.SaveAs("nuebar.png")
+c.SaveAs(title+".png")
 

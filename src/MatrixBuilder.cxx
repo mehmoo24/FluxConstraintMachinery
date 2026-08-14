@@ -100,14 +100,14 @@ TH1D* MatrixK::GetMatrixProj_XSecHisto(){ return xsecHisto;}
 
 void MatrixK::PopulateMatrixHisto(int pdg, RadCorrTomalak* radCorr, int N){
   int globalBin; double Enu; double ymin; double ymax; double val;
+  int globalBin_OF; double content; double content_OF;
   double Emin, Emax; // min and max total electron energy
-  double Enufinal_min, Enufinal_max;
 
-
-  for (int x=1; x <= fnumEnuBins; x++){
+  // we explicitly loop from 0 to bins+1 so that we are populating the underflow and overflow of the xsec matrix for both neutrino energy bins and electron energy bins
+  for (int x=0; x <= fnumEnuBins+1; x++){
      // use the bin center for the Enu value
      Enu = matrixHisto->GetXaxis()->GetBinCenter(x);
-     for (int y=1; y <= fnumEeBins; y++){
+     for (int y=0; y <= fnumEeBins+1; y++){
         globalBin = matrixHisto->GetBin(x,y);
         Emin = matrixHisto->GetYaxis()->GetBinLowEdge(y);
         Emax = matrixHisto->GetYaxis()->GetBinUpEdge(y);
@@ -115,10 +115,6 @@ void MatrixK::PopulateMatrixHisto(int pdg, RadCorrTomalak* radCorr, int N){
         ymax = GetY(Emax, Enu);
 
         // only integrate for the y values within the physical bounds: between 0 and 1:
-
-  
-   // when using DSigmaDY differential xsec func
-
         if (ymin >=1 || ymax <= 0) {val = 0.0;}
         else {
            ymin = std::max(ymin, 0.0);
@@ -126,24 +122,22 @@ void MatrixK::PopulateMatrixHisto(int pdg, RadCorrTomalak* radCorr, int N){
            val = IntegrateDSigmaDY(pdg, Enu, ymin, ymax, radCorr, N);
         }
 
-
-
-/*  
-        if (ymin >=1 || ymax <= 0) {val = 0.0;}
-        Enufinal_min = kElectronMass + Enu - Emin; //Emin is the min total electron energy
-        Enufinal_max = kElectronMass + Enu - Emax; //Emax is the max total electron energy 
-        val = IntegrateDSigmaDY(pdg, Enu, Enufinal_max, Enufinal_min, N);
-*/
-
         matrixHisto->SetBinContent(globalBin, val);
         matrixHisto->SetBinError(globalBin, 0.0);
      } // end looping over EeBins (ybins)
-
-
-    
-
-
   } // end looping over EnuBins (xbins)
+
+  // now, we want to add the Ee bin overflow to the 9-20GeV Electron energy bin
+  for (int x=0; x <= fnumEnuBins+1; x++){ // looping over all Enu bins, including OF and UF
+     globalBin = matrixHisto->GetBin(x,fnumEeBins);
+     globalBin_OF = matrixHisto->GetBin(x,fnumEeBins+1);
+
+     content = matrixHisto->GetBinContent(globalBin);
+     content_OF = matrixHisto->GetBinContent(globalBin_OF);
+     matrixHisto->SetBinContent(globalBin, content+content_OF);
+     matrixHisto->SetBinContent(globalBin_OF, 0.0); 
+  }
+
 
 } // end PopulateMatrixHisto
 

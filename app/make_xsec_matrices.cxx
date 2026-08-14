@@ -12,7 +12,7 @@ int main(int argc, char *argv[]){
   TString output_name = argv[3];
 
  
-  std::vector<double> bins = {0.8,2,3,5,7,9,120}; // Electron Energy Distribution
+  std::vector<double> bins = {0.8,2,3,5,7,9,20}; // Electron Energy Distribution, that's the bins but then we'll pile in overflow into the 9-20 GeV bin, effectively making it 9 to infinity
 
   // Double check all of the POTs being used
   double input_POT_FHC_ME = 1.16e21; // Valencia paper
@@ -20,12 +20,19 @@ int main(int argc, char *argv[]){
   double input_POT_FHC_LE = 3.32e+20; // from tuples
   double input_POT_RHC_LE = 1.03e+20; // from tuples
 
-  EeDistributionCreator creator(flux_file, input_POT_FHC_ME, input_POT_RHC_ME, input_POT_FHC_LE, input_POT_RHC_LE, bins,"/exp/minerva/app/users/mmehmood/MAT_AL9/ComputeFluxConstraint/inputs/f1_muonNeutrinos.csv","/exp/minerva/app/users/mmehmood/MAT_AL9/ComputeFluxConstraint/inputs/f10_muonNeutrinos.csv","/exp/minerva/app/users/mmehmood/MAT_AL9/ComputeFluxConstraint/inputs/f1_muonAntineutrinos.csv", "/exp/minerva/app/users/mmehmood/MAT_AL9/ComputeFluxConstraint/inputs/f10_muonAntineutrinos.csv", "/exp/minerva/app/users/mmehmood/MAT_AL9/ComputeFluxConstraint/inputs/f1_electronNeutrinos.csv", "/exp/minerva/app/users/mmehmood/MAT_AL9/ComputeFluxConstraint/inputs/f10_electronNeutrinos.csv", "/exp/minerva/app/users/mmehmood/MAT_AL9/ComputeFluxConstraint/inputs/f10_electronAntineutrinos.csv", "/exp/minerva/app/users/mmehmood/MAT_AL9/ComputeFluxConstraint/inputs/f1_electronAntineutrinos.csv");    
+  int numUnivs = 100; // choose # of universes!
 
+  EeDistributionCreator creator(flux_file, input_POT_FHC_ME, input_POT_RHC_ME, input_POT_FHC_LE, input_POT_RHC_LE, bins,"/exp/minerva/app/users/mmehmood/MAT_AL9/ComputeFluxConstraint/inputs/f1_muonNeutrinos.csv","/exp/minerva/app/users/mmehmood/MAT_AL9/ComputeFluxConstraint/inputs/f10_muonNeutrinos.csv","/exp/minerva/app/users/mmehmood/MAT_AL9/ComputeFluxConstraint/inputs/f1_muonAntineutrinos.csv", "/exp/minerva/app/users/mmehmood/MAT_AL9/ComputeFluxConstraint/inputs/f10_muonAntineutrinos.csv", "/exp/minerva/app/users/mmehmood/MAT_AL9/ComputeFluxConstraint/inputs/f1_electronNeutrinos.csv", "/exp/minerva/app/users/mmehmood/MAT_AL9/ComputeFluxConstraint/inputs/f10_electronNeutrinos.csv", "/exp/minerva/app/users/mmehmood/MAT_AL9/ComputeFluxConstraint/inputs/f10_electronAntineutrinos.csv", "/exp/minerva/app/users/mmehmood/MAT_AL9/ComputeFluxConstraint/inputs/f1_electronAntineutrinos.csv",numUnivs);    
+
+  std::cout << "Calling LoadFluxHistos()" << std::endl;
   creator.LoadFluxHistos();
+
+  std::cout << "Calling CreateXSecMatrices()" << std::endl;
   creator.CreateXSecMatrices();
   creator.SetupEeDistributions();
-  creator.PopulateEeDistributions();
+//  std::cout << "Calling GetTotalEeDistribution()" << std::endl;
+//  creator.GetTotalEeDistribution(); // Already gets called in the WriteEverything function
+   creator.WriteEverythingToROOTFile(output_path, output_name);
  
 //  creator.WriteFIG8ToFile(output_path, "FIG8","/exp/minerva/app/users/mmehmood/MAT_AL9/ComputeFluxConstraint/inputs/Total_numu.csv", "/exp/minerva/app/users/mmehmood/MAT_AL9/ComputeFluxConstraint/inputs/Total_numubar.csv", "/exp/minerva/app/users/mmehmood/MAT_AL9/ComputeFluxConstraint/inputs/Total_nue.csv", "/exp/minerva/app/users/mmehmood/MAT_AL9/ComputeFluxConstraint/inputs/Total_nuebar.csv");
 
@@ -46,7 +53,6 @@ int main(int argc, char *argv[]){
 
   // Ensure calling this AFTER LoadFluxHistos(), CreateXSecMatrices(), SetupEeDistributions()
 
-  creator.WriteEverythingToROOTFile(output_path, output_name);
 
   creator.WriteRadCorrToFileForFixedEnu(output_path, "RadCorr_Enu5GeV",5.0);
 
