@@ -13,7 +13,7 @@ constexpr double kNumElectrons = 1.99e30; // number of electrons, picked up from
 
 class EeDistributionCreator{
    public:
-      EeDistributionCreator(TString fluxFilePath,double input_POT_FHC_ME, double input_POT_RHC_ME, double input_POT_FHC_LE, double input_POT_RHC_LE, std::vector<double> EeBinEdges, TString f1_FilePath_numu, TString f10_FilePath_numu, TString f1_FilePath_numubar, TString f10_FilePath_numubar, TString f1_FilePath_nue, TString f10_FilePath_nue, TString f1_FilePath_nuebar, TString f10_FilePath_nuebar, int numUnivs);      
+      EeDistributionCreator(TString fluxFilePath, double input_POT_Mode, std::vector<double> EeBinEdges, TString f1_FilePath_numu, TString f10_FilePath_numu, TString f1_FilePath_numubar, TString f10_FilePath_numubar, TString f1_FilePath_nue, TString f10_FilePath_nue, TString f1_FilePath_nuebar, TString f10_FilePath_nuebar, int numUnivs);      
 
       ~EeDistributionCreator(); // destructor
 
@@ -41,6 +41,12 @@ class EeDistributionCreator{
   
       PlotUtils::MnvH1D* GetTotalEeDistribution();
 
+      // manual fix for now
+      void CreateEeHisto_PDG14();
+      void CreateEeHisto_PDGminus14();
+      void CreateEeHisto_PDG12();
+      void CreateEeHisto_PDGminus12();
+
    private:
       TString kfluxFilePath;
       // electron energy distributions for each flavour
@@ -54,10 +60,7 @@ class EeDistributionCreator{
       PlotUtils::MnvH1D* kFluxDistr_PDG12;
       PlotUtils::MnvH1D* kFluxDistr_PDGminus12;
 
-      double POT_FHC_ME;
-      double POT_RHC_ME;
-      double POT_FHC_LE;
-      double POT_RHC_LE;
+      double POT;
 
 
       // xsec matrices for each flavour

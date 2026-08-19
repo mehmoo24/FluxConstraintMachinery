@@ -17,7 +17,8 @@ SRC = \
         src/RadCorrectionTomalak.cxx \
         src/MatrixBuilder.cxx \
         src/ElectronEnergyDistribution.cxx \
-	app/make_xsec_matrices.cxx
+	app/make_xsec_matrices.cxx \
+        src/Loglikelihood.cxx
 
 TARGET = make_xsec_matrices
 

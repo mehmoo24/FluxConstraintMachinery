@@ -1,7 +1,7 @@
 #include "../include/ElectronEnergyDistribution.h"
 #include "../include/MatrixBuilder.h"
 
-EeDistributionCreator::EeDistributionCreator(TString fluxFilePath, double input_POT_Mode, std::vector<double> EeBinEdges, TString f1_FilePath_numu, TString f10_FilePath_numu, TString f1_FilePath_numubar, TString f10_FilePath_numubar, TString f1_FilePath_nue, TString f10_FilePath_nue, TString f1_FilePath_nuebar, TString f10_FilePath_nuebar, int numUnivs)
+EeDistributionCreator::EeDistributionCreator(TString fluxFilePath, double input_POT_FHC_ME, double input_POT_RHC_ME, double input_POT_FHC_LE, double input_POT_RHC_LE, std::vector<double> EeBinEdges, TString f1_FilePath_numu, TString f10_FilePath_numu, TString f1_FilePath_numubar, TString f10_FilePath_numubar, TString f1_FilePath_nue, TString f10_FilePath_nue, TString f1_FilePath_nuebar, TString f10_FilePath_nuebar, int numUnivs)
    : kfluxFilePath(fluxFilePath), kXSecMatrix_PDG14(nullptr),
      kXSecMatrix_PDGminus14(nullptr), 
      kXSecMatrix_PDG12(nullptr),
@@ -31,7 +31,10 @@ EeDistributionCreator::EeDistributionCreator(TString fluxFilePath, double input_
    kRadCorr_PDG12 = new RadCorrTomalak( f1_FilePath_nue, f10_FilePath_nue);
    kRadCorr_PDGminus12 = new RadCorrTomalak(f1_FilePath_nuebar, f10_FilePath_nuebar);
 
-   POT = input_POT_Mode;
+   POT_FHC_ME = input_POT_FHC_ME;
+   POT_RHC_ME = input_POT_RHC_ME;
+   POT_FHC_LE = input_POT_FHC_LE;
+   POT_RHC_LE = input_POT_RHC_LE;
 
 } // end constructor
 
@@ -64,7 +67,7 @@ EeDistributionCreator::~EeDistributionCreator(){
 
 PlotUtils::MnvH1D* EeDistributionCreator::GetTotalEeDistribution(){
    
-/*
+
   auto* PDG14 = PopulateEeDistributions(kXSecMatrix_PDG14, kFluxDistr_PDG14, kEeDistr_PDG14, POT_FHC_ME);
   delete kEeDistr_PDG14;
   kEeDistr_PDG14 = PDG14;
@@ -83,8 +86,13 @@ PlotUtils::MnvH1D* EeDistributionCreator::GetTotalEeDistribution(){
 
    std::cout << "Check 5!" << std::endl;
 
-*/
+
   
+
+
+
+
+
    auto totalEeDistr = (PlotUtils::MnvH1D*)(kEeDistr_PDG14->Clone("kEeDistr_TOTAL"));
    totalEeDistr->SetDirectory(nullptr);
    totalEeDistr->Add(kEeDistr_PDGminus14);
@@ -93,151 +101,8 @@ PlotUtils::MnvH1D* EeDistributionCreator::GetTotalEeDistribution(){
    return totalEeDistr;
 }
 
-void EeDistributionCreator::CreateEeHisto_PDGminus14(){
-
-   delete kEeDistr_PDGminus14;
-   // setup the distribution now
-   kEeDistr_PDGminus14 = new PlotUtils::MnvH1D("kEeDistr_PDGminus14", "kEeDistr_PDGminus14", kEeBinEdges.size()-1, kEeBinEdges.data());
-   kEeDistr_PDGminus14->SetDirectory(nullptr);
-
-   double val = 0.0; double xsec; double flux; double width;
-  int globalBin; int numUnivs;
-
-   // for the CV
-   for (int j=0; j<=kEeDistr_PDGminus14->GetNbinsX()+1; j++){
-     for (int i=0; i<=kXSecMatrix_PDGminus14->GetMatrixHisto()->GetNbinsX()+1; i++){
-        globalBin = kXSecMatrix_PDGminus14->GetMatrixHisto()->GetBin(i,j);
-        xsec = kXSecMatrix_PDGminus14->GetMatrixHisto()->GetBinContent(globalBin);
-          flux = kFluxDistr_PDGminus14->GetBinContent(i);
-          width = kFluxDistr_PDGminus14->GetBinWidth(i);
-          val = val + xsec*flux*width;
-     } // looping over neutrino energy bins of cross-section matrix
-     val = val * (3.894e-28) * (1e-4) * kNumElectrons * POT;
-     kEeDistr_PDGminus14->SetBinContent(j, val);
-     val = 0.0;
-  }
-   kEeDistr_PDGminus14->AddVertErrorBandAndFillWithCV("Flux",kNumUnivs);
-
-
-   for (int univ=0; univ<kNumUnivs; univ++){
-     const TH1D* histo = kFluxDistr_PDGminus14->GetVertErrorBand("Flux")->GetHist(univ);
-
-  for (int j=0; j<=kEeDistr_PDGminus14->GetNbinsX()+1; j++){
-     for (int i=0; i<=kXSecMatrix_PDGminus14->GetMatrixHisto()->GetNbinsX()+1; i++){
-        globalBin = kXSecMatrix_PDGminus14->GetMatrixHisto()->GetBin(i,j);
-        xsec = kXSecMatrix_PDGminus14->GetMatrixHisto()->GetBinContent(globalBin);
-        flux = histo->GetBinContent(i);
-        width = kFluxDistr_PDGminus14->GetBinWidth(i);
-        val = val + xsec*flux*width;
-
-   } // looping over neutrino energy bins of cross-section matrix
-     val = val * (3.894e-28) * (1e-4) * kNumElectrons * POT;
-     kEeDistr_PDGminus14->GetVertErrorBand("Flux")->GetHist(univ)->SetBinContent(j,val);
-     val = 0.0;
-  }
-  delete histo;
-
-} // end looping over universes
-} // end EeDistributionCreator::CreateEeHisto_PDGminus14
-
-
-void EeDistributionCreator::CreateEeHisto_PDG12(){
-
-   delete kEeDistr_PDG12;
-   // setup the distribution now
-   kEeDistr_PDG12 = new PlotUtils::MnvH1D("kEeDistr_PDG12", "kEeDistr_PDG12", kEeBinEdges.size()-1, kEeBinEdges.data());
-   kEeDistr_PDG12->SetDirectory(nullptr);
-
-   double val = 0.0; double xsec; double flux; double width;
-  int globalBin; int numUnivs;
-
-  // for the CV
-   for (int j=0; j<=kEeDistr_PDG12->GetNbinsX()+1; j++){
-     for (int i=0; i<=kXSecMatrix_PDG12->GetMatrixHisto()->GetNbinsX()+1; i++){
-        globalBin = kXSecMatrix_PDG12->GetMatrixHisto()->GetBin(i,j);
-        xsec = kXSecMatrix_PDG12->GetMatrixHisto()->GetBinContent(globalBin);
-          flux = kFluxDistr_PDG12->GetBinContent(i);
-          width = kFluxDistr_PDG12->GetBinWidth(i);
-          val = val + xsec*flux*width;
-     } // looping over neutrino energy bins of cross-section matrix
-     val = val * (3.894e-28) * (1e-4) * kNumElectrons * POT;
-     kEeDistr_PDG12->SetBinContent(j, val);
-     val = 0.0;
-  }
-   kEeDistr_PDG12->AddVertErrorBandAndFillWithCV("Flux",kNumUnivs);
-
-
-   for (int univ=0; univ<kNumUnivs; univ++){
-     const TH1D* histo = kFluxDistr_PDG12->GetVertErrorBand("Flux")->GetHist(univ);
-
-  for (int j=0; j<=kEeDistr_PDG12->GetNbinsX()+1; j++){
-     for (int i=0; i<=kXSecMatrix_PDG12->GetMatrixHisto()->GetNbinsX()+1; i++){
-        globalBin = kXSecMatrix_PDG12->GetMatrixHisto()->GetBin(i,j);
-        xsec = kXSecMatrix_PDG12->GetMatrixHisto()->GetBinContent(globalBin);
-        flux = histo->GetBinContent(i);
-        width = kFluxDistr_PDG12->GetBinWidth(i);
-        val = val + xsec*flux*width;
-
-   } // looping over neutrino energy bins of cross-section matrix
-     val = val * (3.894e-28) * (1e-4) * kNumElectrons * POT;
-     kEeDistr_PDG12->GetVertErrorBand("Flux")->GetHist(univ)->SetBinContent(j,val);
-     val = 0.0;
-  }
-  delete histo;
-
-} // end looping over universes
-} // end EeDistributionCreator::CreateEeHisto_PDG12
-
-
-void EeDistributionCreator::CreateEeHisto_PDGminus12(){
-
-   delete kEeDistr_PDGminus12;
-   // setup the distribution now
-   kEeDistr_PDGminus12 = new PlotUtils::MnvH1D("kEeDistr_PDGminus12", "kEeDistr_PDGminus12", kEeBinEdges.size()-1, kEeBinEdges.data());
-   kEeDistr_PDGminus12->SetDirectory(nullptr);
-
-   double val = 0.0; double xsec; double flux; double width;
-  int globalBin; int numUnivs;
-
-  // for the CV
-   for (int j=0; j<=kEeDistr_PDGminus12->GetNbinsX()+1; j++){
-     for (int i=0; i<=kXSecMatrix_PDGminus12->GetMatrixHisto()->GetNbinsX()+1; i++){
-        globalBin = kXSecMatrix_PDGminus12->GetMatrixHisto()->GetBin(i,j);
-        xsec = kXSecMatrix_PDGminus12->GetMatrixHisto()->GetBinContent(globalBin);
-          flux = kFluxDistr_PDGminus12->GetBinContent(i);
-          width = kFluxDistr_PDGminus12->GetBinWidth(i);
-          val = val + xsec*flux*width;
-      } // looping over neutrino energy bins of cross-section matrix
-     val = val * (3.894e-28) * (1e-4) * kNumElectrons * POT;
-     kEeDistr_PDGminus12->SetBinContent(j, val);
-     val = 0.0;
-  }
-   kEeDistr_PDGminus12->AddVertErrorBandAndFillWithCV("Flux",kNumUnivs);
-
-
-   for (int univ=0; univ<kNumUnivs; univ++){
-     const TH1D* histo = kFluxDistr_PDGminus12->GetVertErrorBand("Flux")->GetHist(univ);
-
-  for (int j=0; j<=kEeDistr_PDGminus12->GetNbinsX()+1; j++){
-     for (int i=0; i<=kXSecMatrix_PDGminus12->GetMatrixHisto()->GetNbinsX()+1; i++){
-        globalBin = kXSecMatrix_PDGminus12->GetMatrixHisto()->GetBin(i,j);
-        xsec = kXSecMatrix_PDGminus12->GetMatrixHisto()->GetBinContent(globalBin);
-        flux = histo->GetBinContent(i);
-        width = kFluxDistr_PDGminus12->GetBinWidth(i);
-        val = val + xsec*flux*width;
-
-   } // looping over neutrino energy bins of cross-section matrix
-   val = val * (3.894e-28) * (1e-4) * kNumElectrons * POT;
-     kEeDistr_PDGminus12->GetVertErrorBand("Flux")->GetHist(univ)->SetBinContent(j,val);
-     val = 0.0;
-  }
-  delete histo;
-
-} // end looping over universes
-} // end EeDistributionCreator::CreateEeHisto_PDGminus12
-
-
 void EeDistributionCreator::CreateEeHisto_PDG14(){
+   double POT = POT_FHC_ME;
 
    delete kEeDistr_PDG14;
    // setup the distribution now
@@ -390,6 +255,7 @@ void EeDistributionCreator::PopulateEeDistributions(int pdg){
    
 if (pdg == 14){
       std::cout << "check" << std::endl;
+  double POT = POT_FHC_ME;
   // for the CV
    for (int j=0; j<=kEeDistr_PDG14->GetNbinsX()+1; j++){
      for (int i=0; i<=kXSecMatrix_PDG14->GetMatrixHisto()->GetNbinsX()+1; i++){
@@ -655,18 +521,8 @@ void EeDistributionCreator::WriteEverythingToROOTFile(TString path, TString outp
     CreateEeHisto_PDG14();
     kEeDistr_PDG14->Write("kEeDistr_PDG14");
 
-    CreateEeHisto_PDGminus14();
-    kEeDistr_PDGminus14->Write("kEeDistr_PDGminus14");
 
-    CreateEeHisto_PDG12();
-    kEeDistr_PDG12->Write("kEeDistr_PDG12");
 
-    CreateEeHisto_PDGminus12();
-    kEeDistr_PDGminus12->Write("kEeDistr_PDGminus12");
-
-    auto kEeDistr_TOTAL = GetTotalEeDistribution();
-    kEeDistr_TOTAL->Write("kEeDistr_TOTAL");
-    delete kEeDistr_TOTAL;
 
 
 //   kXSecMatrix_UFOF_PDG14->GetMatrixHisto()->Write("kXSecMatrix_UFOF_PDG14");
